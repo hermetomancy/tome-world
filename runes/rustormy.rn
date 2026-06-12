@@ -1,0 +1,28 @@
+export const package = {
+  name: "rustormy"
+  version: "0.5.1"
+  summary: "Minimal neofetch-like weather CLI"
+  homepage: "https://github.com/Tairesh/rustormy"
+  license: "MIT"
+
+  sources: {
+    main: {
+      url: "https://github.com/Tairesh/rustormy/archive/refs/tags/v0.5.1.tar.gz"
+      sha256: "sha256:833faf3b0f343924ba84094b0ed7d59237014ca41e4a5cd1ba32f1d3386df492"
+    }
+  }
+
+  # reqwest + rustls: TLS in Rust, no openssl linkage; no external libraries.
+  deps: {
+    build: { default: ["rust"] }
+    runtime: []
+  }
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "rustormy-0.5.1")
+  cd $source_dir
+  ^cargo build --release --locked --jobs ($ctx.nproc)
+  mkdir ($ctx.package_dir | path join "bin")
+  ^cp target/release/rustormy ($ctx.package_dir | path join "bin" "rustormy")
+}

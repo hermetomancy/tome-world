@@ -11,10 +11,8 @@ grm tome add https://github.com/grimoire-of-glass/tome-world --ref main
 
 ## Packages
 
-- `zoxide`, `starship`, `atuin` — Rust CLIs (build dep: `rust`); add the printed
-  `eval "$(... init zsh)"` lines to your shell rc.
-- `starfetch` — C++ constellation fetch (build deps: `build-env`, `gsed`); its data path
-  is patched to the package's store prefix at build time.
+- `zoxide`, `starship`, `atuin`, `rustormy` — Rust CLIs (build dep: `rust`); the shell
+  hooks print their `eval "$(... init zsh)"` lines as post-install notes.
 - `gnupg` — with its support chain `libgpg-error`, `libgcrypt`, `libassuan`, `libksba`,
   `npth`, and `pinentry` (curses/tty flavors; gpg-agent's pinentry path is baked to the
   managed pinentry's store prefix). zlib/bzip2 come from the platform SDK, like libSystem.
