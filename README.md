@@ -15,7 +15,15 @@ grm tome add https://github.com/grimoire-of-glass/tome-world --ref main
   hooks print their `eval "$(... init zsh)"` lines as post-install notes.
 - `gnupg` — with its support chain `libgpg-error`, `libgcrypt`, `libassuan`, `libksba`,
   `npth`, and `pinentry` (curses/tty flavors; gpg-agent's pinentry path is baked to the
-  managed pinentry's store prefix). zlib/bzip2 come from the platform SDK, like libSystem.
+  managed pinentry's store prefix).
+- `zlib`, `bzip2`, `ncurses` — managed C libraries. Only libc/the platform SDK is an
+  assumable host floor, so anything else a build links must come from the store. All
+  three are static-only; zlib and bzip2 are therefore build deps for their consumers,
+  while ncurses is also a *runtime* dep of anything linking it (the compiled-in default
+  terminfo path is a store path GC must keep alive).
+- `m4`, `autoconf`, `automake`, `gettext` — the autotools chain, for runes built from git tags that
+  ship no generated `configure` (perl comes from the host ambient floor, the documented
+  stage-2 debt).
 - `hello` — GNU Hello, the package-authoring exemplar.
 
 Cross-tome deps resolve like any other: build deps reference core's `rust`, `gmake`,

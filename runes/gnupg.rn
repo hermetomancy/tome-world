@@ -14,10 +14,11 @@ export const package = {
 
   # The five GnuPG support libraries are linked shared (baked store paths): build and
   # runtime both. pinentry is exec'd by gpg-agent at the path baked below — a runtime dep,
-  # and a build dep so its prefix is available at configure time. zlib and bzip2 come from
-  # the platform SDK/libc, like libSystem.
+  # and a build dep so its prefix is available at configure time. zlib and bzip2 are
+  # managed too — only libc/the SDK is an assumable host floor — but link statically,
+  # so they are build deps only.
   deps: {
-    build: { default: ["gmake" "libgpg-error" "libgcrypt" "libassuan" "libksba" "npth" "pinentry"] }
+    build: { default: ["gmake" "zlib" "bzip2" "libgpg-error" "libgcrypt" "libassuan" "libksba" "npth" "pinentry"] }
     runtime: ["libgpg-error" "libgcrypt" "libassuan" "libksba" "npth" "pinentry"]
   }
 
@@ -30,7 +31,9 @@ export const package = {
 export def build [ctx] {
   let source_dir = ($ctx.sources.main.dir | path join "gnupg-2.5.20")
   cd $source_dir
-  ./configure --prefix=($ctx.prefix) --with-libgpg-error-prefix=($env.LIBGPG_ERROR_PREFIX) --with-libgcrypt-prefix=($env.LIBGCRYPT_PREFIX) --with-libassuan-prefix=($env.LIBASSUAN_PREFIX) --with-ksba-prefix=($env.LIBKSBA_PREFIX) --with-npth-prefix=($env.NPTH_PREFIX) --with-pinentry-pgm=($env.PINENTRY_PREFIX | path join "bin" "pinentry-curses") --disable-ldap --disable-doc --disable-dependency-tracking
+  # zlib and bzip2 come from the managed store, not the host; readline stays off rather
+  # than letting configure pick up whatever the host happens to ship.
+  ./configure --prefix=($ctx.prefix) --with-libgpg-error-prefix=($env.LIBGPG_ERROR_PREFIX) --with-libgcrypt-prefix=($env.LIBGCRYPT_PREFIX) --with-libassuan-prefix=($env.LIBASSUAN_PREFIX) --with-ksba-prefix=($env.LIBKSBA_PREFIX) --with-npth-prefix=($env.NPTH_PREFIX) --with-pinentry-pgm=($env.PINENTRY_PREFIX | path join "bin" "pinentry-curses") --with-zlib=($env.ZLIB_PREFIX) --with-bzip2=($env.BZIP2_PREFIX) --without-readline --disable-ldap --disable-doc --disable-dependency-tracking
   make -j ($ctx.nproc)
   make install DESTDIR=($ctx.package_dir)
 }

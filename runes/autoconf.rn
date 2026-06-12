@@ -1,0 +1,30 @@
+export const package = {
+  name: "autoconf"
+  version: "2.72"
+  summary: "GNU Autoconf: generate configure scripts"
+  homepage: "https://www.gnu.org/software/autoconf/"
+  license: "GPL-3.0-or-later"
+
+  sources: {
+    main: {
+      url: "https://ftp.gnu.org/gnu/autoconf/autoconf-2.72.tar.gz"
+      sha256: "sha256:afb181a76e1ee72832f6581c0eddf8df032b83e2e0239ef79ebedc4467d92d6e"
+    }
+  }
+
+  # m4 is a runtime dep: autom4te records the m4 it was configured with (a store path)
+  # and runs it for every autoconf/autoreconf invocation. Perl comes from the host
+  # ambient floor — the same documented stage-2 debt as everywhere else.
+  deps: {
+    build: { default: ["gmake" "m4"] }
+    runtime: ["m4"]
+  }
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "autoconf-2.72")
+  cd $source_dir
+  ./configure --prefix=($ctx.prefix)
+  make -j ($ctx.nproc)
+  make install DESTDIR=($ctx.package_dir)
+}

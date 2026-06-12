@@ -1,0 +1,29 @@
+export const package = {
+  name: "automake"
+  version: "1.18.1"
+  summary: "GNU Automake: generate Makefile.in from Makefile.am"
+  homepage: "https://www.gnu.org/software/automake/"
+  license: "GPL-2.0-or-later"
+
+  sources: {
+    main: {
+      url: "https://ftp.gnu.org/gnu/automake/automake-1.18.1.tar.gz"
+      sha256: "sha256:63e585246d0fc8772dffdee0724f2f988146d1a3f1c756a3dc5cfbefa3c01915"
+    }
+  }
+
+  # aclocal drives autom4te, so autoconf (and through it m4) is needed at runtime,
+  # not just for the build.
+  deps: {
+    build: { default: ["gmake" "autoconf"] }
+    runtime: ["autoconf"]
+  }
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "automake-1.18.1")
+  cd $source_dir
+  ./configure --prefix=($ctx.prefix)
+  make -j ($ctx.nproc)
+  make install DESTDIR=($ctx.package_dir)
+}

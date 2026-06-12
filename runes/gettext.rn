@@ -1,0 +1,48 @@
+export const package = {
+  name: "gettext"
+  version: "0.26"
+  summary: "GNU gettext runtime: libintl, gettext.sh, and the autotools m4 macros"
+  homepage: "https://www.gnu.org/software/gettext/"
+  license: "GPL-3.0-or-later"
+
+  sources: {
+    main: {
+      url: "https://ftp.gnu.org/gnu/gettext/gettext-0.26.tar.gz"
+      sha256: "sha256:39acf4b0371e9b110b60005562aace5b3631fed9b1bb9ecccfc7f56e58bb1d7f"
+    }
+  }
+
+  deps: {
+    build: { default: ["gmake"] }
+    runtime: []
+  }
+
+  notes: [
+    "autotools consumers: point aclocal at the macros with"
+    "  ACLOCAL_PATH=($env.GETTEXT_PREFIX)/share/aclocal"
+  ]
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "gettext-0.26")
+  # Only the runtime sub-package: libintl, gettext/ngettext, gettext.sh. The full tools
+  # (msgfmt, xgettext) drag in bundled libtextstyle, which fails to link under clang and
+  # is msgcat styling support nothing here needs — extend to gettext-tools if a rune
+  # ever needs message compilation.
+  cd ($source_dir | path join "gettext-runtime")
+  # gnulib trips clang's incompatible-function-pointer-types (an error since clang 16).
+  $env.CFLAGS = "-O2 -Wno-error=incompatible-function-pointer-types"
+  ./configure --prefix=($ctx.prefix) --disable-java --disable-csharp --disable-dependency-tracking
+  make -j ($ctx.nproc)
+  make install DESTDIR=($ctx.package_dir)
+
+  # Since 0.26 gettext no longer installs its aclocal macros (autopoint is expected to
+  # vendor them per-project). Consumers without AM_GNU_GETTEXT (e.g. anything using
+  # AM_ICONV / the AC_LIB_* family) still need them on an aclocal search path, so
+  # install them deliberately.
+  # DESTDIR layout: files land at $DESTDIR$prefix, plain concatenation.
+  let aclocal = ($"($ctx.package_dir)($ctx.prefix)" | path join "share" "aclocal")
+  mkdir $aclocal
+  ^cp m4/gettext.m4 m4/nls.m4 m4/po.m4 m4/progtest.m4 m4/build-to-host.m4 $aclocal
+  ^cp gnulib-m4/iconv.m4 gnulib-m4/lib-ld.m4 gnulib-m4/lib-link.m4 gnulib-m4/lib-prefix.m4 gnulib-m4/host-cpu-c-abi.m4 $aclocal
+}

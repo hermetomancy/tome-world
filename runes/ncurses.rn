@@ -1,0 +1,35 @@
+export const package = {
+  name: "ncurses"
+  version: "6.5"
+  summary: "Terminal control library (curses) with wide-character support"
+  homepage: "https://invisible-island.net/ncurses/"
+  license: "X11"
+
+  sources: {
+    main: {
+      url: "https://ftp.gnu.org/gnu/ncurses/ncurses-6.5.tar.gz"
+      sha256: "sha256:136d91bc269a9a5785e5f9e980bc76ab57428f604ce3e5a5a90cebc767971cc6"
+    }
+  }
+
+  # Static-only libraries, but the compiled-in default terminfo path points at this
+  # package's share/terminfo — consumers that link libncursesw carry that store path at
+  # runtime, so they must declare ncurses as a runtime dep too (GC must not reap the
+  # terminfo database).
+  deps: {
+    build: { default: ["gmake"] }
+    runtime: []
+  }
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "ncurses-6.5")
+  cd $source_dir
+  # Wide-character build (libncursesw) — what pinentry and modern TUIs expect. The
+  # terminfo search path bakes this package's database first and falls back to the
+  # common host locations, so a plain host floor still resolves $TERM.
+  let terminfo_dir = ($ctx.prefix | path join "share" "terminfo")
+  ./configure --prefix=($ctx.prefix) --enable-widec --without-debug --without-ada --without-tests --with-default-terminfo-dir=($terminfo_dir) --with-terminfo-dirs=$"($terminfo_dir):/usr/share/terminfo:/lib/terminfo:/etc/terminfo"
+  make -j ($ctx.nproc)
+  make install DESTDIR=($ctx.package_dir)
+}

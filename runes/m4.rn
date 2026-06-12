@@ -1,0 +1,27 @@
+export const package = {
+  name: "m4"
+  version: "1.4.20"
+  summary: "GNU M4 macro processor"
+  homepage: "https://www.gnu.org/software/m4/"
+  license: "GPL-3.0-or-later"
+
+  sources: {
+    main: {
+      url: "https://ftp.gnu.org/gnu/m4/m4-1.4.20.tar.gz"
+      sha256: "sha256:6ac4fc31ce440debe63987c2ebbf9d7b6634e67a7c3279257dc7361de8bdb3ef"
+    }
+  }
+
+  deps: {
+    build: { default: ["gmake"] }
+    runtime: []
+  }
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "m4-1.4.20")
+  cd $source_dir
+  ./configure --prefix=($ctx.prefix) --disable-dependency-tracking
+  make -j ($ctx.nproc)
+  make install DESTDIR=($ctx.package_dir)
+}
