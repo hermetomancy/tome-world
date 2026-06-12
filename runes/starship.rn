@@ -1,0 +1,33 @@
+export const package = {
+  name: "starship"
+  version: "1.25.1"
+  summary: "The minimal, blazing-fast, and infinitely customizable prompt"
+  homepage: "https://starship.rs/"
+  license: "ISC"
+
+  sources: {
+    main: {
+      url: "https://github.com/starship/starship/archive/refs/tags/v1.25.1.tar.gz"
+      sha256: "sha256:521306b14066ee7e332d998ef5b5b6455fdc6085c52e86b6316a7cdc37bae1d8"
+    }
+  }
+
+  # Vendored native code in -sys crates compiles via `cc` from rust's runtime
+  # toolchain-wrappers; no external libraries.
+  deps: {
+    build: { default: ["rust"] }
+    runtime: []
+  }
+
+  notes: [
+    "add to your shell rc:  eval \"$(starship init zsh)\"   (or bash/fish)"
+  ]
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "starship-1.25.1")
+  cd $source_dir
+  ^cargo build --release --locked --jobs ($ctx.nproc)
+  mkdir ($ctx.package_dir | path join "bin")
+  ^cp target/release/starship ($ctx.package_dir | path join "bin" "starship")
+}

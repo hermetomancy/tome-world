@@ -1,0 +1,27 @@
+export const package = {
+  name: "npth"
+  version: "1.8"
+  summary: "The new GNU portable threads library"
+  homepage: "https://gnupg.org/software/npth/"
+  license: "LGPL-2.1-or-later"
+
+  sources: {
+    main: {
+      url: "https://gnupg.org/ftp/gcrypt/npth/npth-1.8.tar.bz2"
+      sha256: "sha256:8bd24b4f23a3065d6e5b26e98aba9ce783ea4fd781069c1b35d149694e90ca3e"
+    }
+  }
+
+  deps: {
+    build: { default: ["gmake"] }
+    runtime: []
+  }
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "npth-1.8")
+  cd $source_dir
+  ./configure --prefix=($ctx.prefix) --disable-dependency-tracking
+  make -j ($ctx.nproc)
+  make install DESTDIR=($ctx.package_dir)
+}

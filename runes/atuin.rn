@@ -1,0 +1,33 @@
+export const package = {
+  name: "atuin"
+  version: "18.16.1"
+  summary: "Magical shell history: sync, search, and stats"
+  homepage: "https://atuin.sh/"
+  license: "MIT"
+
+  sources: {
+    main: {
+      url: "https://github.com/atuinsh/atuin/archive/refs/tags/v18.16.1.tar.gz"
+      sha256: "sha256:752802d4e8eef4896e9bc779b82f85e3d433c5934df5169e9b0f2537acf7f6e9"
+    }
+  }
+
+  # sqlite comes bundled through libsqlite3-sys (compiled by `cc`); no external libraries.
+  deps: {
+    build: { default: ["rust"] }
+    runtime: []
+  }
+
+  notes: [
+    "add to your shell rc:  eval \"$(atuin init zsh)\"   (or bash/fish)"
+  ]
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "atuin-18.16.1")
+  cd $source_dir
+  # Workspace repo: build only the CLI package.
+  ^cargo build --release --locked --jobs ($ctx.nproc) -p atuin
+  mkdir ($ctx.package_dir | path join "bin")
+  ^cp target/release/atuin ($ctx.package_dir | path join "bin" "atuin")
+}

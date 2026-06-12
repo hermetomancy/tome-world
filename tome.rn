@@ -1,0 +1,13 @@
+export const tome = {
+  name: "world"
+  description: "Userland software built on the core toolchain"
+
+  # `grm tome build` writes archives and index.nuon into the git-untracked dist/ directory.
+  # Upload dist/ to a webserver and point `repo` at the base URL that serves it. For local
+  # testing `repo` may instead be an absolute path to the dist/ directory.
+  packages: {
+    repo: "https://grimoire.mchal.lol/world"
+    format: "http"
+    index: "index.nuon"
+  }
+}
