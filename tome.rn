@@ -9,5 +9,6 @@ export const tome = {
     repo: "https://grimoire.mchal.lol/world"
     format: "http"
     index: "index.nuon"
+    signer: "RWR8rJxmotXM1NhQBsJZQfEeWtSP+3x67Nih78Tl7An5o7UQ8gWwmTt6"
   }
 }
