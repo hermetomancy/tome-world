@@ -22,6 +22,18 @@ export const package = {
 export def build [ctx] {
   let source_dir = ($ctx.sources.main.dir | path join "libgcrypt-1.12.2")
   cd $source_dir
+  # Force Mach-O symbol-underscore detection. libgcrypt's GNUPG_SYS_SYMBOL_UNDERSCORE
+  # probe runs the managed `nm` (llvm-nm) through libtool's symbol pipe; under this
+  # toolchain it misdetects, leaving WITH_SYMBOL_UNDERSCORE undefined, so the aarch64 MPI
+  # assembly emits ELF-style symbol names (`_gcry_mpih_add_n`) instead of Mach-O's
+  # leading-underscore form (`__gcry_mpih_add_n`) that the C code references — a dylib
+  # that links but aborts at load ("symbol not found in flat namespace
+  # '__gcry_mpih_add_n'"). macOS always underscores; setting the cache var fixes the asm
+  # symbol names while keeping the MPI + ARMv8 AES/SHA assembly (which --disable-asm would
+  # also throw away).
+  if ($ctx.target | str starts-with "macos-") {
+    $env.ac_cv_sys_symbol_underscore = "yes"
+  }
   ./configure --prefix=($ctx.prefix) --with-libgpg-error-prefix=($env.LIBGPG_ERROR_PREFIX) --disable-doc --disable-dependency-tracking
   make -j ($ctx.nproc)
   make install DESTDIR=($ctx.package_dir)
