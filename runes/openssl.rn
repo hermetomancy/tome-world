@@ -36,6 +36,12 @@ export def build [ctx] {
   # self-contained. no-docs skips the perl POD->man toolchain; no-tests drops the test
   # programs we never run. Configure selects a release profile (-O3, no -g), so unlike the
   # autoconf runes there is no build-dir path baked into debug info to strip.
+  #
+  # The darwin target hardcodes `ranlib -c` (Apple's flag to keep common symbols), but the
+  # managed toolchain's ranlib is llvm-ranlib, which rejects -c and fails at install time.
+  # Configure honors a RANLIB env override (RANLIB => env('RANLIB')), so point it at the
+  # plain managed ranlib — llvm-ar already writes an archive index, so dropping -c is safe.
+  $env.RANLIB = "ranlib"
   ./config --prefix=($ctx.prefix) --libdir=lib --openssldir=($ctx.prefix | path join "ssl") no-docs no-tests
   make -j ($ctx.nproc)
   # install_sw = libraries, headers, and the openssl CLI; install_ssldirs = the openssldir
