@@ -29,6 +29,8 @@ export def build [ctx] {
   if ($ctx.target | str starts-with "macos-") {
     $env.LIBS = "-liconv"
   }
+  # drop autoconf's default -g so the temp build dir isn't baked into the binary (purity lint)
+  $env.CFLAGS = "-O2"
   ./configure --prefix=($ctx.prefix) --disable-nls --disable-dependency-tracking
   make -j ($ctx.nproc)
   make install DESTDIR=($ctx.package_dir)

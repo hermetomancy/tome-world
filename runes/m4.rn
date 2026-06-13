@@ -21,6 +21,8 @@ export const package = {
 export def build [ctx] {
   let source_dir = ($ctx.sources.main.dir | path join "m4-1.4.20")
   cd $source_dir
+  # drop autoconf's default -g so the temp build dir isn't baked into the binary (purity lint)
+  $env.CFLAGS = "-O2"
   ./configure --prefix=($ctx.prefix) --disable-dependency-tracking
   make -j ($ctx.nproc)
   make install DESTDIR=($ctx.package_dir)

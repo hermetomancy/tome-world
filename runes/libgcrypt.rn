@@ -34,6 +34,8 @@ export def build [ctx] {
   if ($ctx.target | str starts-with "macos-") {
     $env.ac_cv_sys_symbol_underscore = "yes"
   }
+  # drop autoconf's default -g so the temp build dir isn't baked into the library (purity lint)
+  $env.CFLAGS = "-O2"
   ./configure --prefix=($ctx.prefix) --with-libgpg-error-prefix=($env.LIBGPG_ERROR_PREFIX) --disable-doc --disable-dependency-tracking
   make -j ($ctx.nproc)
   make install DESTDIR=($ctx.package_dir)
