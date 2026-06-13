@@ -1,0 +1,39 @@
+export const package = {
+  name: "ca-certificates"
+  version: "2026.5.14"
+  upstream_version: "2026-05-14"
+  summary: "Mozilla CA root certificate bundle in PEM form"
+  homepage: "https://curl.se/docs/caextract.html"
+  license: "MPL-2.0"
+
+  # Pure data: the bundle is the source, the build only repackages it. fixed_output makes
+  # the store address cover the PEM itself (name + version + source), not a build
+  # environment — there is no compiler in the loop. The dated upstream URL pins the exact
+  # snapshot; `version` is its date normalised to semver (rune-authoring.md version policy).
+  fixed_output: true
+
+  sources: {
+    main: {
+      url: "https://curl.se/ca/cacert-2026-05-14.pem"
+      sha256: "sha256:86a1f3366afac7c6f8ae9f3c779ac221129328c43f0ab2b8817eb2f362a5025c"
+    }
+  }
+
+  deps: {
+    build: { default: [] }
+    runtime: []
+  }
+
+  notes: [
+    "the bundle lives at share/ca-certificates/cacert.pem; the managed curl bakes it as its"
+    "  default CA path. point other tools at it with SSL_CERT_FILE if they need a CA bundle"
+  ]
+}
+
+export def build [ctx] {
+  # A .pem is a non-archive source, so it arrives as ctx.sources.main.path (the verified
+  # file), not an extracted directory.
+  let dest = ($ctx.package_dir | path join "share" "ca-certificates")
+  mkdir $dest
+  ^cp ($ctx.sources.main.path) ($dest | path join "cacert.pem")
+}

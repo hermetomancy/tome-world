@@ -24,6 +24,18 @@ grm tome add https://github.com/grimoire-of-glass/tome-world --ref main
 - `m4`, `autoconf`, `automake`, `gettext` — the autotools chain, for runes built from git tags that
   ship no generated `configure` (perl comes from the host ambient floor, the documented
   stage-2 debt).
+- `git` — built on the managed transport stack rather than the host's: `openssl` (TLS
+  backend, shared libssl/libcrypto), `curl` (HTTPS, linking the managed openssl + static
+  zlib), and `ca-certificates` (the Mozilla CA bundle, baked as curl's default CA path so
+  HTTPS verifies without the macOS keychain). git links libcurl for transport and the
+  static zlib, takes iconv from libc/the SDK, and turns off everything else
+  (`NO_OPENSSL`/`NO_EXPAT`/`NO_GETTEXT`/`NO_TCLTK`/`NO_PERL`/`NO_PYTHON`); man pages come
+  from the upstream prebuilt tarball. `openssl` and `curl` are build + runtime deps (shared
+  libs, baked store paths); `ca-certificates` is a fixed-output data package.
+- `openssh` — the SSH client/key tools, for git's ssh transport (`git clone git@…`). Built on
+  the managed `openssl` (libcrypto, shared → runtime dep) and static `zlib` (build dep), with
+  PAM/libedit/Kerberos/FIDO all off. It is a standalone package, not a git dep: git execs
+  whatever `ssh` is on PATH, so installing `openssh` into the same generation is enough.
 - `hello` — GNU Hello, the package-authoring exemplar.
 
 Cross-tome deps resolve like any other: build deps reference core's `rust`, `gmake`,

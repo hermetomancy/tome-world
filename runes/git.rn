@@ -1,0 +1,73 @@
+export const package = {
+  name: "git"
+  version: "2.54.0"
+  summary: "Fast, distributed version control system"
+  homepage: "https://git-scm.com/"
+  license: "GPL-2.0-only"
+
+  sources: {
+    main: {
+      url: "https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.54.0.tar.xz"
+      sha256: "sha256:f689162364c10de79ef89aa8dbf48731eb057e34edbbd20aca510ce0154681a3"
+    }
+    # The source tree ships documentation only as AsciiDoc; rendering man pages needs
+    # asciidoc + xmlto (neither packaged). The upstream prebuilt man-page tarball drops in
+    # ready-made, so `git help <cmd>` and `man git` work without a doc toolchain.
+    manpages: {
+      url: "https://mirrors.edge.kernel.org/pub/software/scm/git/git-manpages-2.54.0.tar.xz"
+      sha256: "sha256:292062d18f3a215213ea8317ed22b94f02ad9572520b9293164d7db3eb888953"
+    }
+  }
+
+  # HTTPS transport is the managed libcurl (which carries openssl + the CA bundle, baked
+  # store paths) -> build + runtime dep. zlib is the managed static lib (libz.a) -> build
+  # dep only. Nothing else links from the store: iconv is libc on Linux and the SDK's
+  # libiconv on macOS (both floor), and every other dependency git would discover is turned
+  # off in config.mak below.
+  deps: {
+    build: { default: ["gmake" "curl" "zlib"] }
+    runtime: ["curl"]
+  }
+
+  bins: {
+    default: { git: "bin/git" }
+  }
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "git-2.54.0")
+  cd $source_dir
+
+  # git's build is configured through config.mak (included by its Makefile), which is
+  # clearer than a wall of make-variable overrides. What each knob buys:
+  #   CURL_CONFIG / ZLIB_PATH  point git at the managed libcurl and zlib, not the host.
+  #   NO_OPENSSL   curl owns TLS; git uses its bundled sha1collisiondetection + block-sha256
+  #               and links no openssl of its own.
+  #   NO_EXPAT     drops dumb-HTTP push (libexpat); smart HTTP over libcurl is unaffected.
+  #   NO_GETTEXT   English-only messages, no libintl dependency.
+  #   NO_HOMEBREW  git's config.mak.uname hard-codes HOMEBREW_PREFIX (=/opt/homebrew) as a
+  #               make variable and probes the filesystem to link Homebrew gettext/libiconv
+  #               — gated by neither NO_GETTEXT nor the scrubbed env. This keeps git on the
+  #               SDK's libiconv (the host floor) instead of a Homebrew dylib.
+  #   NO_TCLTK     no gitk / git-gui.
+  #   NO_PERL / NO_PYTHON   skip the perl/python subcommands (git-svn, git-send-email,
+  #               git-p4, …) — building them would bake a host interpreter path into the
+  #               shebangs, an unmanaged input. The core porcelain is all C.
+  #   CFLAGS       git defaults to `-g -O2`; -g bakes the temp build dir into debug info
+  #               (the purity lint), so build optimized without it.
+  let curl_config = ($env.CURL_PREFIX | path join "bin" "curl-config")
+  $"prefix = ($ctx.prefix)\nCURL_CONFIG = ($curl_config)\nZLIB_PATH = ($env.ZLIB_PREFIX)\nNO_OPENSSL = 1\nNO_EXPAT = 1\nNO_GETTEXT = 1\nNO_HOMEBREW = 1\nNO_TCLTK = 1\nNO_PERL = 1\nNO_PYTHON = 1\nCFLAGS = -O2 -Wall\n" | save -f config.mak
+
+  make -j ($ctx.nproc)
+  make install DESTDIR=($ctx.package_dir)
+
+  # The prebuilt man tarball extracts to man1/ man5/ man7/ at its root; lay them under
+  # share/man where the profile's MANPATH looks. DESTDIR staging puts the real payload at
+  # package_dir+prefix (plain concatenation, same as gettext.rn), and only that subtree is
+  # packed — so the man pages must land there, not at a bare package_dir/share.
+  let man = ($"($ctx.package_dir)($ctx.prefix)" | path join "share" "man")
+  mkdir ($man)
+  ^cp -r ($ctx.sources.manpages.dir | path join "man1") ($man)
+  ^cp -r ($ctx.sources.manpages.dir | path join "man5") ($man)
+  ^cp -r ($ctx.sources.manpages.dir | path join "man7") ($man)
+}

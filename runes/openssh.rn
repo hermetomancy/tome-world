@@ -1,0 +1,48 @@
+export const package = {
+  name: "openssh"
+  version: "10.3.1"
+  upstream_version: "10.3p1"
+  summary: "OpenSSH client and server: ssh, scp, sftp, and key tools"
+  homepage: "https://www.openssh.com/"
+  license: "BSD-2-Clause"
+
+  sources: {
+    main: {
+      url: "https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-10.3p1.tar.gz"
+      sha256: "sha256:56682a36bb92dcf4b4f016fd8ec8e74059b79a8de25c15d670d731e7d18e45f4"
+    }
+  }
+
+  # crypto from the managed openssl (libcrypto linked shared, baked store path) -> build AND
+  # runtime dep. compression from the managed static zlib (libz.a) -> build dep only. Only
+  # libc/the SDK is an assumable host floor, so every optional library openssh would
+  # autodetect (PAM, libedit, Kerberos/GSSAPI, FIDO/libfido2) is kept off in the build.
+  deps: {
+    build: { default: ["gmake" "openssl" "zlib"] }
+    runtime: ["openssl"]
+  }
+
+  # `ssh` is a capability (the command differs from the package name); git's ssh transport
+  # execs whatever `ssh` is on PATH, so installing openssh alongside git is enough. The other
+  # client/key tools (scp, sftp, ssh-keygen, ssh-agent, ssh-add, ssh-keyscan) are discovered.
+  bins: {
+    default: { ssh: "bin/ssh" }
+  }
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "openssh-10.3p1")
+  cd $source_dir
+  # autoconf defaults CFLAGS to `-g -O2`; -g records the temp build dir in the binaries'
+  # debug map (the purity lint), so build optimized without it (openssh appends its own
+  # hardening flags to this base) — the gettext.rn pattern.
+  $env.CFLAGS = "-O2"
+  # PAM, libedit, and Kerberos are opt-in (--with-*) and left unset; --disable-security-key
+  # turns off the libfido2 probe explicitly so no host FIDO library is picked up.
+  ./configure --prefix=($ctx.prefix) --with-ssl-dir=($env.OPENSSL_PREFIX) --with-zlib=($env.ZLIB_PREFIX) --disable-security-key
+  make -j ($ctx.nproc)
+  # install-nokeys installs the binaries, config, and (pre-formatted) man pages but skips
+  # host-key generation — random keys would make the package's content address
+  # non-reproducible, and sshd is not run from a user-local package anyway.
+  make install-nokeys DESTDIR=($ctx.package_dir)
+}

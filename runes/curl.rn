@@ -1,0 +1,45 @@
+export const package = {
+  name: "curl"
+  version: "8.20.0"
+  summary: "Command-line tool and library for transferring data with URLs"
+  homepage: "https://curl.se/"
+  license: "curl"
+
+  sources: {
+    main: {
+      url: "https://curl.se/download/curl-8.20.0.tar.xz"
+      sha256: "sha256:63fe2dc148ba0ceae89922ef838f7e5c946272c2e78b7c59fab4b79d3ce2b896"
+    }
+  }
+
+  # TLS from the managed openssl (shared -> build + runtime dep); compression from the
+  # managed static zlib (libz.a -> build dep only). The CA bundle path is baked to the
+  # managed ca-certificates store prefix, so it is a build dep (the prefix must exist at
+  # configure time) and a runtime dep (the path survives into libcurl). Only libc/the SDK
+  # is an assumable host floor, so every other transport library curl would autodetect is
+  # turned off explicitly below rather than picked up from the host.
+  deps: {
+    build: { default: ["gmake" "openssl" "zlib" "ca-certificates"] }
+    runtime: ["openssl" "ca-certificates"]
+  }
+
+  bins: {
+    default: { curl: "bin/curl" }
+  }
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "curl-8.20.0")
+  cd $source_dir
+  # OpenSSL has no view of the macOS keychain, so a baked CA bundle is what makes HTTPS
+  # verification work out of the box. The --without-* / --disable-* wall keeps curl off
+  # every optional host library (psl, idn2, brotli, zstd, http2, libssh2, rtmp, ldap,
+  # gssapi); shared libcurl only (git links it dynamically via curl-config).
+  let cabundle = ($env.CA_CERTIFICATES_PREFIX | path join "share" "ca-certificates" "cacert.pem")
+  # autoconf defaults CFLAGS to `-g -O2`; -g records the temp build dir in the binaries'
+  # debug map (the purity lint), so build optimized without it — the gettext.rn pattern.
+  $env.CFLAGS = "-O2"
+  ./configure --prefix=($ctx.prefix) --with-openssl=($env.OPENSSL_PREFIX) --with-zlib=($env.ZLIB_PREFIX) --with-ca-bundle=($cabundle) --enable-shared --disable-static --without-libpsl --without-libidn2 --without-brotli --without-zstd --without-nghttp2 --without-libssh2 --without-librtmp --without-gssapi --disable-ldap --disable-ldaps --disable-manual
+  make -j ($ctx.nproc)
+  make install DESTDIR=($ctx.package_dir)
+}
