@@ -1,0 +1,47 @@
+export const package = {
+  name: "zstd"
+  version: "1.5.7"
+  summary: "Zstandard — fast real-time compression algorithm and CLI"
+  homepage: "https://facebook.github.io/zstd/"
+  license: "BSD-3-Clause"
+
+  sources: {
+    main: {
+      url: "https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz"
+      sha256: "sha256:eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3"
+    }
+  }
+
+  # The CLI and library carry no external compression backend (see the build), so nothing
+  # from the store survives into the output: zstd is a build dep for anything that links
+  # libzstd later, and has no runtime deps of its own. Built via CMake (cmake + gmake,
+  # like llvm) rather than the raw Makefile — see the build note.
+  deps: {
+    build: { default: ["cmake" "gmake"] }
+    runtime: []
+  }
+
+  bins: {
+    default: { zstd: "bin/zstd" }
+  }
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "zstd-1.5.7")
+  cd $source_dir
+  # zstd's raw Makefile fingerprints builds via `md5sum` (absent from the sandbox PATH,
+  # which breaks it) and auto-probes host zlib/lzma/lz4. Its CMake build needs neither: the
+  # backend-support options all default OFF, so no host compression library is linked, and
+  # Release gives -O3 -DNDEBUG (no -g). Programs link the static libzstd by default, so
+  # `zstd` is self-contained.
+  #
+  # CMake compiles with ABSOLUTE source paths (autotools uses relative ones), so __FILE__
+  # bakes the temp build dir into the binary — the purity lint catches it even without -g.
+  # -ffile-prefix-map rewrites those paths to a stable prefix (the C analog of the Rust
+  # toolchain's --remap-path-prefix); map both the source tree and the work dir.
+  let build_dir = ($ctx.work_dir | path join "zstd-build")
+  let remap = $"-ffile-prefix-map=($source_dir)=zstd -ffile-prefix-map=($ctx.work_dir)=build"
+  cmake -S build/cmake -B ($build_dir) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=($ctx.prefix) -DZSTD_BUILD_TESTS=OFF $"-DCMAKE_C_FLAGS=($remap)"
+  cmake --build ($build_dir) --parallel ($ctx.nproc)
+  cmake --install ($build_dir) --prefix ($ctx.package_dir)
+}

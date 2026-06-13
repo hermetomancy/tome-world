@@ -21,6 +21,9 @@ grm tome add https://github.com/grimoire-of-glass/tome-world --ref main
   three are static-only; zlib and bzip2 are therefore build deps for their consumers,
   while ncurses is also a *runtime* dep of anything linking it (the compiled-in default
   terminfo path is a store path GC must keep alive).
+- `zstd` — the Zstandard compressor (the `zstd` CLI and libzstd), built without the
+  gzip/xz/lz4 passthrough backends so it links no host compression libraries; the native
+  `.zst` format is unaffected.
 - `m4`, `autoconf`, `automake`, `gettext` — the autotools chain, for runes built from git tags that
   ship no generated `configure` (perl comes from the host ambient floor, the documented
   stage-2 debt).
