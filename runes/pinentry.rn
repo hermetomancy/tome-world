@@ -32,7 +32,7 @@ export def build [ctx] {
   # by prefix instead.
   $env.CPPFLAGS = $"-I($env.NCURSES_PREFIX | path join 'include' 'ncursesw') -I($env.NCURSES_PREFIX | path join 'include') -DNCURSES_WIDECHAR=1 -D_XOPEN_SOURCE_EXTENDED -D_DARWIN_C_SOURCE"
   $env.LDFLAGS = $"-L($env.NCURSES_PREFIX | path join 'lib')"
-  ./configure --prefix=($ctx.prefix) --with-libgpg-error-prefix=($env.LIBGPG_ERROR_PREFIX) --with-libassuan-prefix=($env.LIBASSUAN_PREFIX) --enable-pinentry-curses --enable-pinentry-tty --disable-pinentry-qt --disable-pinentry-qt5 --disable-pinentry-gtk2 --disable-pinentry-gnome3 --disable-pinentry-fltk --disable-pinentry-efl --disable-dependency-tracking
+  ./configure --prefix=($ctx.prefix) --with-libgpg-error-prefix=($env.LIBGPG_ERROR_PREFIX) --with-libassuan-prefix=($env.LIBASSUAN_PREFIX) --disable-nls --enable-pinentry-curses --enable-pinentry-tty --disable-pinentry-qt --disable-pinentry-qt5 --disable-pinentry-gtk2 --disable-pinentry-gnome3 --disable-pinentry-fltk --disable-pinentry-efl --disable-dependency-tracking
   make -j ($ctx.nproc)
   make install DESTDIR=($ctx.package_dir)
 }

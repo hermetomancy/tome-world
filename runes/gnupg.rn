@@ -33,7 +33,7 @@ export def build [ctx] {
   cd $source_dir
   # zlib and bzip2 come from the managed store, not the host; readline stays off rather
   # than letting configure pick up whatever the host happens to ship.
-  ./configure --prefix=($ctx.prefix) --with-libgpg-error-prefix=($env.LIBGPG_ERROR_PREFIX) --with-libgcrypt-prefix=($env.LIBGCRYPT_PREFIX) --with-libassuan-prefix=($env.LIBASSUAN_PREFIX) --with-ksba-prefix=($env.LIBKSBA_PREFIX) --with-npth-prefix=($env.NPTH_PREFIX) --with-pinentry-pgm=($env.PINENTRY_PREFIX | path join "bin" "pinentry-curses") --with-zlib=($env.ZLIB_PREFIX) --with-bzip2=($env.BZIP2_PREFIX) --without-readline --disable-ldap --disable-doc --disable-dependency-tracking
+  ./configure --prefix=($ctx.prefix) --with-libgpg-error-prefix=($env.LIBGPG_ERROR_PREFIX) --with-libgcrypt-prefix=($env.LIBGCRYPT_PREFIX) --with-libassuan-prefix=($env.LIBASSUAN_PREFIX) --with-ksba-prefix=($env.LIBKSBA_PREFIX) --with-npth-prefix=($env.NPTH_PREFIX) --with-pinentry-pgm=($env.PINENTRY_PREFIX | path join "bin" "pinentry-curses") --with-zlib=($env.ZLIB_PREFIX) --with-bzip2=($env.BZIP2_PREFIX) --disable-nls --without-readline --disable-ldap --disable-doc --disable-dependency-tracking
   make -j ($ctx.nproc)
   make install DESTDIR=($ctx.package_dir)
 }
