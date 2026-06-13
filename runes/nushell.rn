@@ -1,0 +1,40 @@
+export const package = {
+  name: "nushell"
+  version: "0.113.1"
+  summary: "A new type of shell, with structured data pipelines"
+  homepage: "https://www.nushell.sh/"
+  license: "MIT"
+
+  sources: {
+    main: {
+      url: "https://github.com/nushell/nushell/archive/refs/tags/0.113.1.tar.gz"
+      sha256: "sha256:d2b514b9ec7c1cc5930025528987d730cadcaa0f063227691c837516093328fd"
+    }
+  }
+
+  # Default features (plugin, trash-support, sqlite, network, rustls-tls, mcp) link no
+  # external C library: rustls is pure-Rust TLS (ring's C compiled by `cc`), sqlite is
+  # bundled via libsqlite3-sys (also `cc`), trash is pure-Rust on Linux / Foundation on
+  # macOS. `cc` rides in via rust's toolchain-wrappers. system-clipboard and native-tls
+  # are left OFF: arboard would link host libxcb on Linux, native-tls would link host
+  # openssl — neither is in the managed store, and rustls already reads the OS trust
+  # store via rustls-native-certs, so native-tls buys nothing here anyway.
+  deps: {
+    build: { default: ["rust"] }
+    runtime: []
+  }
+
+  notes: [
+    "launch with `nu`; to use as a login shell add its store bin path to /etc/shells, then `chsh`"
+  ]
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "nushell-0.113.1")
+  cd $source_dir
+  # `nu` is the workspace ROOT package, so a plain release build builds just the nu
+  # binary on the default feature set — no `-p` or feature flags needed.
+  ^cargo build --release --locked --jobs ($ctx.nproc)
+  mkdir ($ctx.package_dir | path join "bin")
+  ^cp target/release/nu ($ctx.package_dir | path join "bin" "nu")
+}
