@@ -1,0 +1,35 @@
+export const package = {
+  name: "tokei"
+  version: "14.0.0"
+  summary: "Count your code, quickly: lines by language, files, comments, blanks"
+  homepage: "https://github.com/XAMPPRocky/tokei"
+  license: "MIT OR Apache-2.0"
+
+  sources: {
+    main: {
+      url: "https://github.com/XAMPPRocky/tokei/archive/refs/tags/v14.0.0.tar.gz"
+      sha256: "sha256:4e561dbb83ef1b46359714fc623fd45eddfb14821ece63a219470500fdd1cd26"
+    }
+  }
+
+  # Pure Rust; the release binary links only libc. Cargo.lock carries libgit2-sys/libz-sys,
+  # but solely via a [dev-dependencies] git2 (test suite) — they are absent from a release
+  # build graph, so there is no host libgit2/zlib/openssl linkage. serde_json is a
+  # non-optional dep, so JSON output is always compiled in.
+  deps: {
+    build: { default: ["rust"] }
+    runtime: []
+  }
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "tokei-14.0.0")
+  cd $source_dir
+  # Single-package, single-binary crate: the default `cli` feature satisfies the binary's
+  # required-features, so a plain release build emits target/release/tokei. Explicitly NOT
+  # --no-default-features (that would drop `cli` and the binary). No man pages or
+  # completions exist (none committed; build.rs writes only Rust into OUT_DIR).
+  ^cargo build --release --locked --jobs ($ctx.nproc)
+  mkdir ($ctx.package_dir | path join "bin")
+  ^cp target/release/tokei ($ctx.package_dir | path join "bin" "tokei")
+}

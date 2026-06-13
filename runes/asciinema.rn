@@ -1,0 +1,61 @@
+export const package = {
+  name: "asciinema"
+  version: "3.2.0"
+  summary: "Record and share terminal sessions as lightweight asciicast recordings"
+  homepage: "https://asciinema.org/"
+  license: "GPL-3.0-or-later"
+
+  sources: {
+    main: {
+      url: "https://github.com/asciinema/asciinema/archive/refs/tags/v3.2.0.tar.gz"
+      sha256: "sha256:247c7c87481f38d7788c1fb1be12021c778676c0d0ab37e529ec528f87f487ce"
+    }
+  }
+
+  # The 3.x line is a full Rust rewrite (the historical Python 2.x is superseded); builds
+  # with cargo, not pip. No external C library survives into the output: HTTP/WebSocket
+  # upload uses reqwest/tokio-tungstenite over rustls + ring (ring's asm/C is compiled by
+  # `cc` from rust's toolchain-wrappers at build time, no runtime lib) — there is NO
+  # openssl-sys and NO native-tls. The rustls "-native-roots" cert path is
+  # rustls-native-certs reading the OS trust store at runtime, not an openssl link. PTY and
+  # termios go through the `nix`/`libc` FFI to the platform libc, present everywhere. The
+  # macos-tty feature (a macOS PTY refinement) is left off: it is not required to compile
+  # and no other rune branches on OS; revisit with an OS-gated --features if needed.
+  deps: {
+    build: { default: ["rust"] }
+    runtime: []
+  }
+}
+
+export def build [ctx] {
+  let source_dir = ($ctx.sources.main.dir | path join "asciinema-3.2.0")
+  cd $source_dir
+
+  # build.rs generates man pages and completions into $ASCIINEMA_GEN_DIR (falling back to
+  # the opaque build-script OUT_DIR if unset). Point it at a known dir so the artifacts
+  # land at deterministic paths — no target/.../build/<HASH>/out glob needed. Env mutation
+  # via `$env.X =` propagates to the cargo subprocess and its build script (the same way
+  # the C-library runes set CFLAGS/CPPFLAGS).
+  let gen_dir = ($source_dir | path join "gen")
+  $env.ASCIINEMA_GEN_DIR = $gen_dir
+  ^cargo build --release --locked --jobs ($ctx.nproc)
+
+  mkdir ($ctx.package_dir | path join "bin")
+  # No [[bin]] section: cargo names the binary after the package (src/main.rs).
+  ^cp target/release/asciinema ($ctx.package_dir | path join "bin" "asciinema")
+
+  # clap_mangen writes asciinema.1 plus one page per subcommand into gen/man/. Copy the
+  # directory contents (the `/.` suffix) into share/man/man1.
+  mkdir ($ctx.package_dir | path join "share" "man" "man1")
+  ^cp -R $"($gen_dir)/man/." ($ctx.package_dir | path join "share" "man" "man1")
+
+  # clap_complete writes one file per shell into gen/completion/ with bin name "asciinema"
+  # (bash -> asciinema.bash, zsh -> _asciinema, fish -> asciinema.fish; the elvish/
+  # powershell variants are also emitted but have no linker slot here).
+  mkdir ($ctx.package_dir | path join "share" "bash-completion" "completions")
+  ^cp ($gen_dir | path join "completion" "asciinema.bash") ($ctx.package_dir | path join "share" "bash-completion" "completions" "asciinema")
+  mkdir ($ctx.package_dir | path join "share" "zsh" "site-functions")
+  ^cp ($gen_dir | path join "completion" "_asciinema") ($ctx.package_dir | path join "share" "zsh" "site-functions" "_asciinema")
+  mkdir ($ctx.package_dir | path join "share" "fish" "vendor_completions.d")
+  ^cp ($gen_dir | path join "completion" "asciinema.fish") ($ctx.package_dir | path join "share" "fish" "vendor_completions.d" "asciinema.fish")
+}
