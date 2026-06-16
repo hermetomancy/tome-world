@@ -5,8 +5,8 @@ exactly what bootstraps grimoire and its managed build environment — and every
 lives here. Add both:
 
 ```sh
-grm tome add https://github.com/grimoire-of-glass/tome-core --ref main
-grm tome add https://github.com/grimoire-of-glass/tome-world --ref main
+grm tome add https://github.com/hermetomancy/tome-core --ref main
+grm tome add https://github.com/hermetomancy/tome-world --ref main
 ```
 
 ## Packages
@@ -44,7 +44,7 @@ grm tome add https://github.com/grimoire-of-glass/tome-world --ref main
 Cross-tome deps resolve like any other: build deps reference core's `rust`, `gmake`,
 `gsed`, `openssl`, and `build-env`. Conventions (implementation-named utilities, capability bins,
 split packages) are documented in
-[rune-authoring.md](https://github.com/grimoire-of-glass/grimoire/blob/main/docs/rune-authoring.md).
+[rune-authoring.md](https://github.com/hermetomancy/grimoire/blob/main/docs/rune-authoring.md).
 
 ## Building
 
