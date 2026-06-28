@@ -2,8 +2,10 @@ export const package = {
   name: "libgpg-error"
   version: "1.61"
   summary: "Common error values and runtime support for GnuPG components"
-  homepage: "https://gnupg.org/software/libgpg-error/"
-  license: "LGPL-2.1-or-later"
+  meta: {
+    homepage: "https://gnupg.org/software/libgpg-error/"
+    license: "LGPL-2.1-or-later"
+  }
 
   sources: {
     main: {

@@ -2,8 +2,10 @@ export const package = {
   name: "libgcrypt"
   version: "1.12.2"
   summary: "GnuPG's general-purpose cryptographic library"
-  homepage: "https://gnupg.org/software/libgcrypt/"
-  license: "LGPL-2.1-or-later"
+  meta: {
+    homepage: "https://gnupg.org/software/libgcrypt/"
+    license: "LGPL-2.1-or-later"
+  }
 
   sources: {
     main: {

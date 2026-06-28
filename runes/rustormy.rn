@@ -2,8 +2,10 @@ export const package = {
   name: "rustormy"
   version: "0.5.1"
   summary: "Minimal neofetch-like weather CLI"
-  homepage: "https://github.com/Tairesh/rustormy"
-  license: "MIT"
+  meta: {
+    homepage: "https://github.com/Tairesh/rustormy"
+    license: "MIT"
+  }
 
   sources: {
     main: {

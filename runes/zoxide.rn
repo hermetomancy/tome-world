@@ -2,8 +2,10 @@ export const package = {
   name: "zoxide"
   version: "0.9.9"
   summary: "A smarter cd command, inspired by z and autojump"
-  homepage: "https://github.com/ajeetdsouza/zoxide"
-  license: "MIT"
+  meta: {
+    homepage: "https://github.com/ajeetdsouza/zoxide"
+    license: "MIT"
+  }
 
   sources: {
     main: {

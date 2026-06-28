@@ -2,8 +2,10 @@ export const package = {
   name: "gnupg"
   version: "2.5.20"
   summary: "The GNU Privacy Guard: OpenPGP encryption and signing"
-  homepage: "https://gnupg.org/"
-  license: "GPL-3.0-or-later"
+  meta: {
+    homepage: "https://gnupg.org/"
+    license: "GPL-3.0-or-later"
+  }
 
   sources: {
     main: {

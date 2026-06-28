@@ -2,8 +2,10 @@ export const package = {
   name: "tokei"
   version: "14.0.0"
   summary: "Count your code, quickly: lines by language, files, comments, blanks"
-  homepage: "https://github.com/XAMPPRocky/tokei"
-  license: "MIT OR Apache-2.0"
+  meta: {
+    homepage: "https://github.com/XAMPPRocky/tokei"
+    license: "MIT OR Apache-2.0"
+  }
 
   sources: {
     main: {

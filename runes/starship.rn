@@ -2,8 +2,10 @@ export const package = {
   name: "starship"
   version: "1.25.1"
   summary: "The minimal, blazing-fast, and infinitely customizable prompt"
-  homepage: "https://starship.rs/"
-  license: "ISC"
+  meta: {
+    homepage: "https://starship.rs/"
+    license: "ISC"
+  }
 
   sources: {
     main: {

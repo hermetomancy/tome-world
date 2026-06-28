@@ -2,8 +2,10 @@ export const package = {
   name: "npth"
   version: "1.8"
   summary: "The new GNU portable threads library"
-  homepage: "https://gnupg.org/software/npth/"
-  license: "LGPL-2.1-or-later"
+  meta: {
+    homepage: "https://gnupg.org/software/npth/"
+    license: "LGPL-2.1-or-later"
+  }
 
   sources: {
     main: {

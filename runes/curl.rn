@@ -2,8 +2,10 @@ export const package = {
   name: "curl"
   version: "8.20.0"
   summary: "Command-line tool and library for transferring data with URLs"
-  homepage: "https://curl.se/"
-  license: "curl"
+  meta: {
+    homepage: "https://curl.se/"
+    license: "curl"
+  }
 
   sources: {
     main: {

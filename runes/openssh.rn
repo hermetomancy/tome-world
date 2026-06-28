@@ -3,8 +3,10 @@ export const package = {
   version: "10.3.1"
   upstream_version: "10.3p1"
   summary: "OpenSSH client and server: ssh, scp, sftp, and key tools"
-  homepage: "https://www.openssh.com/"
-  license: "BSD-2-Clause"
+  meta: {
+    homepage: "https://www.openssh.com/"
+    license: "BSD-2-Clause"
+  }
 
   sources: {
     main: {

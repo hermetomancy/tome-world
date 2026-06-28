@@ -2,8 +2,10 @@ export const package = {
   name: "atuin"
   version: "18.16.1"
   summary: "Magical shell history: sync, search, and stats"
-  homepage: "https://atuin.sh/"
-  license: "MIT"
+  meta: {
+    homepage: "https://atuin.sh/"
+    license: "MIT"
+  }
 
   sources: {
     main: {

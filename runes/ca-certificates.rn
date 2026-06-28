@@ -3,8 +3,10 @@ export const package = {
   version: "2026.5.14"
   upstream_version: "2026-05-14"
   summary: "Mozilla CA root certificate bundle in PEM form"
-  homepage: "https://curl.se/docs/caextract.html"
-  license: "MPL-2.0"
+  meta: {
+    homepage: "https://curl.se/docs/caextract.html"
+    license: "MPL-2.0"
+  }
 
   # Pure data: the bundle is the source, the build only repackages it. fixed_output makes
   # the store address cover the PEM itself (name + version + source), not a build
@@ -20,7 +22,6 @@ export const package = {
   }
 
   deps: {
-    build: { default: [] }
     runtime: []
   }
 

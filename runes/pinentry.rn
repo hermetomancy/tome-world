@@ -2,8 +2,10 @@ export const package = {
   name: "pinentry"
   version: "1.3.2"
   summary: "Passphrase entry dialogs for GnuPG"
-  homepage: "https://gnupg.org/software/pinentry/"
-  license: "GPL-2.0-or-later"
+  meta: {
+    homepage: "https://gnupg.org/software/pinentry/"
+    license: "GPL-2.0-or-later"
+  }
 
   sources: {
     main: {

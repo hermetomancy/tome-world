@@ -2,8 +2,10 @@ export const package = {
   name: "libksba"
   version: "1.8.0"
   summary: "X.509 and CMS support library for GnuPG"
-  homepage: "https://gnupg.org/software/libksba/"
-  license: "LGPL-3.0-or-later"
+  meta: {
+    homepage: "https://gnupg.org/software/libksba/"
+    license: "LGPL-3.0-or-later"
+  }
 
   sources: {
     main: {

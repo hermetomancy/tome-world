@@ -2,8 +2,10 @@ export const package = {
   name: "git"
   version: "2.54.0"
   summary: "Fast, distributed version control system"
-  homepage: "https://git-scm.com/"
-  license: "GPL-2.0-only"
+  meta: {
+    homepage: "https://git-scm.com/"
+    license: "GPL-2.0-only"
+  }
 
   sources: {
     main: {

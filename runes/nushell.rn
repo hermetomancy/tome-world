@@ -2,8 +2,10 @@ export const package = {
   name: "nushell"
   version: "0.113.1"
   summary: "A new type of shell, with structured data pipelines"
-  homepage: "https://www.nushell.sh/"
-  license: "MIT"
+  meta: {
+    homepage: "https://www.nushell.sh/"
+    license: "MIT"
+  }
 
   sources: {
     main: {

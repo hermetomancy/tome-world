@@ -2,8 +2,10 @@ export const package = {
   name: "libassuan"
   version: "3.0.2"
   summary: "IPC library used by GnuPG components"
-  homepage: "https://gnupg.org/software/libassuan/"
-  license: "LGPL-2.1-or-later"
+  meta: {
+    homepage: "https://gnupg.org/software/libassuan/"
+    license: "LGPL-2.1-or-later"
+  }
 
   sources: {
     main: {

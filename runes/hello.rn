@@ -2,8 +2,10 @@ export const package = {
   name: "hello"
   version: "2.12.3"
   summary: "GNU Hello, the canonical example program"
-  homepage: "https://www.gnu.org/software/hello/"
-  license: "GPL-3.0-or-later"
+  meta: {
+    homepage: "https://www.gnu.org/software/hello/"
+    license: "GPL-3.0-or-later"
+  }
   sources: {
     main: {
       url: "https://ftp.gnu.org/gnu/hello/hello-2.12.3.tar.gz"
