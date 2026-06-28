@@ -17,9 +17,11 @@ export const package = {
   # TLS from managed openssl (shared -> build + runtime); compression from managed static
   # zlib (libz.a -> build only). The baked CA bundle path makes ca-certificates both a build
   # dep (prefix must exist at configure time) and runtime dep (path survives into libcurl).
+  # perl (build only) regenerates the docs man pages (curl-config.1, mk-ca-bundle.1, wcurl.1)
+  # via managen; --disable-manual only drops the big curl.1, not these.
   # Every other transport library curl would autodetect is turned off explicitly below.
   deps: {
-    build: { default: ["gmake" "openssl" "zlib" "ca-certificates"] }
+    build: { default: ["gmake" "openssl" "zlib" "ca-certificates" "perl"] }
     runtime: ["openssl" "ca-certificates"]
   }
 
